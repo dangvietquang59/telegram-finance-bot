@@ -26,12 +26,10 @@ bot.start((ctx) => {
 bot.command('setusername', async (ctx) => {
   const username = ctx.from.username;
 
-  // Nếu người dùng đã có username, thông báo và không cần làm gì
   if (username) {
     return ctx.reply(`✅ Bạn đã có username Telegram: @${username}`);
   }
 
-  // Nếu chưa có username, hướng dẫn tạo
   return ctx.reply(`
 ⚠️ Bạn chưa có username Telegram.
 👉 Hướng dẫn tạo:
@@ -47,7 +45,6 @@ Sau khi bạn đã có username, quay lại và thử lại bot.
 bot.command('thu', async (ctx) => {
   const username = ctx.from.username;
 
-  // Nếu chưa có username, yêu cầu tạo
   if (!username) {
     return ctx.reply('⚠️ Bạn chưa có username Telegram. Hãy sử dụng /setusername để tạo username.');
   }
@@ -103,5 +100,9 @@ bot.command('thongke', async (ctx) => {
 - Chi: ${totalExpense.toLocaleString()} VND
 - Số dư: ${(totalIncome - totalExpense).toLocaleString()} VND`);
 });
+
+// Thiết lập Webhook cho bot
+bot.telegram.setWebhook(`https://${process.env.WEBHOOK_URL}/bot${process.env.BOT_TOKEN}`);
+bot.startWebhook('/bot' + process.env.BOT_TOKEN, null, process.env.PORT || 3000);
 
 module.exports = bot;
