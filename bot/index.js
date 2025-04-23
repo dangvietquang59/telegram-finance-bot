@@ -6,6 +6,7 @@ require('dotenv').config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const prisma = new PrismaClient();
 
+// Hàm tìm kiếm hoặc tạo mới người dùng
 async function findOrCreateUser(username) {
   if (!username) throw new Error('Người dùng chưa đặt username Telegram');
 
@@ -16,14 +17,42 @@ async function findOrCreateUser(username) {
   return user;
 }
 
+// Lệnh start khi bot được gọi
 bot.start((ctx) => {
   ctx.reply('👋 Chào bạn! Gửi /thu hoặc /chi để ghi dòng tiền.');
 });
 
+// Lệnh /setusername để kiểm tra và yêu cầu người dùng tạo username nếu chưa có
+bot.command('setusername', async (ctx) => {
+  const username = ctx.from.username;
+
+  // Nếu người dùng đã có username, thông báo và không cần làm gì
+  if (username) {
+    return ctx.reply(`✅ Bạn đã có username Telegram: @${username}`);
+  }
+
+  // Nếu chưa có username, hướng dẫn tạo
+  return ctx.reply(`
+⚠️ Bạn chưa có username Telegram.
+👉 Hướng dẫn tạo:
+1. Vào Telegram
+2. Chọn Menu ≡ → Settings (Cài đặt)
+3. Nhấn vào Profile của bạn
+4. Nhấn vào "Username" và đặt tên không trùng
+Sau khi bạn đã có username, quay lại và thử lại bot.
+  `);
+});
+
+// Lệnh /thu để ghi dòng tiền thu vào
 bot.command('thu', async (ctx) => {
   const username = ctx.from.username;
+
+  // Nếu chưa có username, yêu cầu tạo
+  if (!username) {
+    return ctx.reply('⚠️ Bạn chưa có username Telegram. Hãy sử dụng /setusername để tạo username.');
+  }
+
   const amount = parseFloat(ctx.message.text.replace('/thu', '').trim());
-  if (!username) return ctx.reply('⚠️ Bạn cần có username Telegram.');
   if (isNaN(amount)) return ctx.reply('Sai định dạng: /thu 100000');
 
   const user = await findOrCreateUser(username);
@@ -32,10 +61,12 @@ bot.command('thu', async (ctx) => {
   ctx.reply(`✅ Ghi thu: ${amount.toLocaleString()} VND`);
 });
 
+// Lệnh /chi để ghi dòng tiền chi ra
 bot.command('chi', async (ctx) => {
   const username = ctx.from.username;
+  if (!username) return ctx.reply('⚠️ Bạn chưa có username Telegram. Hãy sử dụng /setusername để tạo username.');
+
   const amount = parseFloat(ctx.message.text.replace('/chi', '').trim());
-  if (!username) return ctx.reply('⚠️ Bạn cần có username Telegram.');
   if (isNaN(amount)) return ctx.reply('Sai định dạng: /chi 50000');
 
   const user = await findOrCreateUser(username);
@@ -44,9 +75,10 @@ bot.command('chi', async (ctx) => {
   ctx.reply(`❌ Ghi chi: ${amount.toLocaleString()} VND`);
 });
 
+// Lệnh /thongke để thống kê thu chi theo tháng
 bot.command('thongke', async (ctx) => {
   const username = ctx.from.username;
-  if (!username) return ctx.reply('⚠️ Bạn cần có username Telegram.');
+  if (!username) return ctx.reply('⚠️ Bạn chưa có username Telegram. Hãy sử dụng /setusername để tạo username.');
 
   const input = ctx.message.text.replace('/thongke', '').trim();
   const month = input || dayjs().format('YYYY-MM');
