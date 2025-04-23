@@ -17,6 +17,7 @@ model User {
   id           Int           @id @default(autoincrement())
   username     String        @unique
   transactions Transaction[]
+  @@map("user")
 }
 
 model Transaction {
@@ -26,4 +27,6 @@ model Transaction {
   date      DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+
+  @@map("transaction")
 }
