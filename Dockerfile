@@ -11,14 +11,8 @@ RUN npm install
 # Copy toàn bộ project vào container
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Push schema lên DB (tạo bảng theo schema.prisma)
-RUN npx prisma db push
-
 # Cổng mặc định Express
 EXPOSE 3000
 
-# Lệnh chạy app
-CMD ["node", "app.js"]
+# Lệnh chạy app (gồm generate & db push)
+CMD ["sh", "-c", "npx prisma generate && npx prisma db push && node app.js"]
